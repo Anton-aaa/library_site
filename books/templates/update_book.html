@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{%include "navbar.html"%}
+
+<form method="post" action="{% url 'book_update' book.pk %}">
+    {% csrf_token %}
+    <br><a>Update book</a></br>
+    {{ form }}
+    <button type="submit">Edit</button>
+</form>
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{%include "navbar.html"%}
+
+<h1>{{title}}</h1>
+{% for book in books %}
+<li><a href="{% url 'book_detail' book.id %}">{{ book.title }}</a></li>
+{% endfor %}
+{% endblock %}

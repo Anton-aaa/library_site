@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{%include "navbar.html"%}
+
+<h1>All books</h1>
+{% if request.user.groups.first.name == 'librarians' or request.user.is_staff %}
+    <a href="{% url 'book_create' %}">Create book</a>
+    <br></br>
+{% endif %}
+
+{% for book in books %}
+<a href="{% url 'book_detail' book.id%}"><h3>{{book.title}}</h3></a>
+
+<a>Author: </a>
+{% for author in book.author.all %}
+<a>{{author}} </a>
+{% endfor %}
+
+<br>
+<br><a>{{book.summary|truncatewords:30}}</a></br>
+
+<br>{% if book.available %}
+    <a>Available for read</a>
+{% else %}
+    <a>Not available for read</a>
+{% endif %}</br>
+{% endfor %}
+
+<br></br>
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+            <a href="?page=1">&laquo; first</a>
+            <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">next</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+{% endblock %}

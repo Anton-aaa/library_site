@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{%include "navbar.html"%}
+
+<h1>All massage</h1>
+
+{% if not notice.viewed %}
+<form method="post" action="{% url 'notice_borrow_all_read' %}">
+                    {% csrf_token %}
+                    <input type="submit" value="Mark all as read">
+                </form>
+{% endif %}
+
+{% for notice in notices %}
+    <h3>"{{ notice.borrow_request.book }}"</h3>
+    {% if notice.borrow_result %}
+        <a href="{% url 'borrow_detail' notice.borrow_request.pk %}">Borrow request approved</a>
+    {% else %}
+        <a href="{% url 'borrow_detail' notice.borrow_request.pk %}">Borrow request reject</a>
+        {% if notice.refusal_message %}
+            <br><a>Reason:</a></br>
+            <a>{{notice.refusal_message}}</a>
+        {% endif %}
+    {% endif %}
+    {% if not notice.viewed %}
+        <h4>Unread</h4>
+    {% endif %}
+{% endfor %}
+
+<br></br>
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+            <a href="?page=1">&laquo; first</a>
+            <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">next</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+{% endblock %}

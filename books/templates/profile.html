@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{%include "navbar.html"%}
+
+<h1>Profile {{request.user.username}}</h1>
+
+<form method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <input type="submit" value="Logout">
+                    </form>
+
+<br><a href="{% url 'notice_borrow_list' %}">All messages</a>
+<br><a href="{% url 'borrow_user_list' %}">Your borrow requests</a></br>
+
+{% if request.user.groups.first.name == 'librarians' or request.user.is_staff %}
+    <br><a href="{% url 'book_create' %}">Create book</a>
+    <br><a href="{% url 'author_list' %}">All authors</a>
+    <br><a href="{% url 'genre_list' %}">All genres</a>
+    <br><a href="{% url 'borrow_list' %}">All borrow requests</a>
+    <br></br>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{%include "navbar.html"%}
+
+<h1>All borrow requests</h1>
+<table>
+    <colgroup style="background-color: #ddd;" span=6>
+    </colgroup>
+  <tbody>
+  <tr>
+      <th>Book</th>
+      <th>Borrower</th>
+      <th>Request date</th>
+      <th>Status</th>
+      <th>Due date</th>
+      <th>Action</th>
+    </tr>
+    {% for borrow in borrows %}
+        <tr>
+            <td>{{ borrow.book }}</td>
+            <td>{{ borrow.borrower }}</td>
+            <td>{{ borrow.request_date }}</td>
+            <td>{{ borrow.get_status_display }}</td>
+            <td>{{ borrow.due_date }}</td>
+        <td>
+            {% if borrow.status == 2 %}
+                <form method="post" action="{% url 'borrow_take' borrow.pk %}">
+                    {% csrf_token %}
+                    <input type="submit" value="Take">
+                </form>
+            {% else %}
+                <a>You can pick up a book only if the application status is "Approved"</a>
+            {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+
+<br></br>
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+            <a href="?page=1">&laquo; first</a>
+            <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">next</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+{% endblock %}

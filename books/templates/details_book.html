@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{%include "navbar.html"%}
+
+<h1>{{book.title}}</h1>
+{% if request.user.groups.first.name == 'librarians' or request.user.is_staff %}
+    <a href="{% url 'book_update' book.pk %}">Edit</a>
+    <br><a href="{% url 'book_sure_delete' book.pk %}">Delete</a>
+    <br></br>
+{% endif %}
+
+<a>Author: </a>
+{% for author in book.author.all %}
+<a>{{author}} </a>
+{% endfor %}
+<br>
+<a>Genre: </a>
+{% for genre in book.genre.all %}
+<a> {{genre}} </a>
+{% endfor %}
+<br>
+<br><a>{{book.summary}}</a></br>
+
+<br><a>Publication date - {{book.published_date}}</a></br>
+<br><a>Publisher: {{book.publisher}}</a></br>
+<br><a>ISBN: {{book.isbn}}</a></br>
+
+<br>{% if book.available %}
+    <a>Available for read</a>
+{% else %}
+    <a>Not available for read</a>
+{% endif %}</br>
+
+{% if user.is_authenticated and not borrow %}
+    <br><form method="post" action="{% url 'borrow_create' book.pk %}">
+        {% csrf_token %}
+        <input type="submit" value="Apply for a book">
+    </form></br>
+{% endif %}
+
+{% if borrow %}
+    <br><a>A book request already exists</a></br>
+{% endif %}
+
+{% endblock %}

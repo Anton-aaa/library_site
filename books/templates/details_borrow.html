@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{%include "navbar.html"%}
+
+<h1>Book: "{{borrow.book}}"</h1>
+<a>Ststus: {{borrow.get_status_display }}</a>
+<br><a>Ststus: {{borrow.request_date}}</a>
+{% if borrow.due_date %}
+    <br><a>Due date {{borrow.due_date}}</a>
+{% endif %}
+{% if borrow.status == 2 %}
+                <form method="post" action="{% url 'borrow_take' borrow.pk %}">
+                    {% csrf_token %}
+                    <input type="submit" value="Take">
+                </form>
+{% endif %}
+
+{% endblock %}

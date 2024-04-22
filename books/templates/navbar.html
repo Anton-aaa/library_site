@@ -1,0 +1,16 @@
+{% block content %}
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        {% if not user.is_authenticated %}
+            <a href="{% url 'login' %}">Login/Registration</a>
+        {% endif %}
+        <a href="{% url 'main' %}">Main page</a>
+        <a href="{% url 'book_list' %}">Books</a>
+        <a href="{% url 'search' %}">Search for books</a>
+        {% if user.is_authenticated %}
+            <a href="{% url 'profile' %}">Profile</a>
+        {% endif %}
+  </div>
+</nav>
+{% endblock %}
