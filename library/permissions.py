@@ -14,12 +14,6 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
         return True
 
 
-# class IsLibrarianUser(BasePermission):
-#
-#     def has_permission(self, request, view):
-#         return bool(request.user and request.user.groups.filter(name='librarians').exists())
-
-
 class IsLibrarianOrAdmin(permissions.BasePermission):
     def has_permission(self, request, view):
         return bool(request.user.groups.filter(name='librarians').exists() or request.user.is_staff)
@@ -28,3 +22,7 @@ class IsLibrarianOrAdmin(permissions.BasePermission):
 class IsBorrowerOrAdminOrLibrarian(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         return obj.borrower == request.user or request.user.is_staff or request.user.groups.filter(name='librarians').exists()
+
+class IsRecipientOrAdminOrLibrarian(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return obj.borrow_request.borrower == request.user or request.user.is_staff or request.user.groups.filter(name='librarians').exists()

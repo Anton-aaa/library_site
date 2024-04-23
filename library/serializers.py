@@ -1,13 +1,43 @@
+from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 import datetime
-from books.models import Genre, Book, BorrowRequest, NoticeBorrow
-
+from books.models import Genre, Book, BorrowRequest, NoticeBorrow, User
+from rest_framework import serializers
+from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
 
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genre
         fields = ["name",]
 
+
+class UserSerializer(serializers.ModelSerializer):
+
+    password = serializers.CharField(write_only=True, required=True)
+    password2 = serializers.CharField(write_only=True, required=True)
+
+    class Meta:
+        model = User
+        fields = [
+            'id',
+            'username',
+            'email',
+            'is_staff',
+            'password',
+            'password2'
+        ]
+
+    extra_kwargs = {
+        'first_name': {'required': True},
+        'last_name': {'required': True}}
+
+    def validate(self, data):
+        super().validate(data)
+        if data['password'] != data.pop('password2'):
+            raise serializers.ValidationError({"password": "Password fields didn't match."})
+
+        return data
 
 class BookSerializer(serializers.ModelSerializer):
     class Meta:
@@ -27,10 +57,11 @@ class BookSerializer(serializers.ModelSerializer):
 
 class BorrowRequestSerializer(serializers.ModelSerializer):
     book = serializers.PrimaryKeyRelatedField(many=False, required=False, queryset=Book.objects.all())
-
+    rejection_reason = serializers.CharField(max_length=350, write_only=True, required=False)
     class Meta:
         model = BorrowRequest
-        fields = ["book",
+        fields = ["id",
+                  "book",
                   "borrower",
                   "status",
                   "overdue",
@@ -38,6 +69,7 @@ class BorrowRequestSerializer(serializers.ModelSerializer):
                   "approval_date",
                   "due_date",
                   "complete_date",
+                  "rejection_reason"
                   ]
         read_only_fields = ['borrower',
                             'overdue',
@@ -55,6 +87,10 @@ class BorrowRequestSerializer(serializers.ModelSerializer):
             book = Book.objects.filter(pk=data['book'].id).first()
             old_borrow = BorrowRequest.objects.filter(book=book, borrower=user)
 
+            if not data['status'] == 1:
+                raise serializers.ValidationError("Status must be 'Pending'")
+            if (data.get('rejection_reason')):
+                raise serializers.ValidationError("Rejection reason must not be")
             if (data.get('due_date')):
                 raise serializers.ValidationError("Due date must not be")
 
@@ -77,6 +113,18 @@ class BorrowRequestSerializer(serializers.ModelSerializer):
             # restrictions for librarians
             if data.get('book'):
                 raise serializers.ValidationError("Book not subject to change")
+            if data.get('rejection_reason') and not data['status'] == 5:
+                raise serializers.ValidationError("Rejection reason must be indicated along with the status 'Declined'")
+
+            # create a refusal with the reason for the refusal
+            if data.get('rejection_reason'):
+                message = data.pop('rejection_reason')
+                NoticeBorrow.objects.create(borrow_request=borrow, borrow_result=False, refusal_message=message)
+
+            # create a note about the acceptance of the application
+            if data['status'] == 2:
+                NoticeBorrow.objects.create(borrow_request=borrow, borrow_result=True)
+
             if data.get('due_date') and not data['status'] == 2:
                 raise serializers.ValidationError("Due date not subject to change")
             if data.get('due_date') and data['due_date'] <= datetime.date.today():
@@ -107,7 +155,7 @@ class NoticeBorrowSerializer(serializers.ModelSerializer):
                   "refusal_message",
                   "viewed",
                   ]
-        read_only_fields = ['borrower',
-                            'overdue',
-                            'approval_date',
-                            'complete_date']
+        read_only_fields = ['borrow_request',
+                            'notice_date',
+                            'borrow_result',
+                            'refusal_message']

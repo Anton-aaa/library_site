@@ -7,3 +7,11 @@ class IsOwnerBorrowFilterBackend(filters.BaseFilterBackend):
             return queryset.filter()
 
         return queryset.filter(borrower=request.user)
+
+
+class IsRecipientFilterBackend(filters.BaseFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+        if request.user.is_staff or request.user.groups.filter(name='librarians').exists():
+            return queryset.filter()
+
+        return queryset.filter(borrow_request__borrower=request.user)

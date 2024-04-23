@@ -7,7 +7,8 @@ from books.borrow.views import (BorrowRequestCreateView,
                                 BorrowRequestCompleteView,
                                 BorrowRequestUserListView,
                                 BorrowRequestTakeView,
-                                BorrowRequestDetailView
+                                BorrowRequestDetailView,
+                                BorrowRequestDeadlineTrackingView
                               )
 
 urlpatterns = [
@@ -20,4 +21,5 @@ urlpatterns = [
     path("user_list/", BorrowRequestUserListView.as_view(), name="borrow_user_list"),
     path("take_book/<int:pk>", BorrowRequestTakeView.as_view(), name="borrow_take"),
     path("detail/<int:pk>", BorrowRequestDetailView.as_view(), name='borrow_detail'),
+    path("deadline_tracking", BorrowRequestDeadlineTrackingView.as_view(), name='borrow_deadline_tracking'),
 ]

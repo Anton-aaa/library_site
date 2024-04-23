@@ -7,9 +7,10 @@ from django.urls import reverse, reverse_lazy
 from django.shortcuts import render
 from django.views import View
 from django.views.generic import TemplateView, FormView, CreateView, DeleteView, ListView, UpdateView, DetailView, RedirectView
-import datetime
+from datetime import date
 from books.forms import BorrowRequestApproveForm
 from books.models import BorrowRequest, Book, NoticeBorrow
+
 
 
 class BorrowRequestCreateView(LoginRequiredMixin, RedirectView):
@@ -173,3 +174,38 @@ class BorrowRequestDetailView(DetailView):
     context_object_name = "borrow"
 
 
+class BorrowRequestDeadlineTrackingView(PermissionRequiredMixin, ListView):
+    model = BorrowRequest
+    template_name = 'list_borrow.html'
+    context_object_name = "borrows"
+    paginate_by = 5
+    login_url = 'login'
+    permission_required = 'books.process_request'
+
+    def get_queryset(self):
+        if self.queryset is not None:
+            queryset = self.queryset
+            if isinstance(queryset, QuerySet):
+                queryset = queryset.all()
+        elif self.model is not None:
+            for borrow in BorrowRequest.objects.filter(status=2):
+                if borrow.due_date < date.today():
+                    borrow.overdue = True
+                    borrow.save()
+            for borrow in BorrowRequest.objects.filter(status=3):
+                if borrow.due_date < date.today():
+                    borrow.overdue = True
+                    borrow.save()
+            queryset = self.model._default_manager.filter(overdue=True)
+        else:
+            raise ImproperlyConfigured(
+                "%(cls)s is missing a QuerySet. Define "
+                "%(cls)s.model, %(cls)s.queryset, or override "
+                "%(cls)s.get_queryset()." % {"cls": self.__class__.__name__}
+            )
+        ordering = self.get_ordering()
+        if ordering:
+            if isinstance(ordering, str):
+                ordering = (ordering,)
+            queryset = queryset.order_by(*ordering)
+        return queryset

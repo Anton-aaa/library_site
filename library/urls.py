@@ -5,7 +5,10 @@ from books.views import (MainView,
                          search_book,
                          GenreModelViewSet,
                          BookModelViewSet,
-                         BorrowRequestModelViewSet)
+                         BorrowRequestModelViewSet,
+                         UserModelViewSet,
+                         NoticeBorrowModelViewSet
+                         )
 from rest_framework.authtoken import views
 from rest_framework import routers
 
@@ -13,6 +16,8 @@ router = routers.SimpleRouter()
 router.register("genre", GenreModelViewSet)
 router.register("book", BookModelViewSet)
 router.register("borrow", BorrowRequestModelViewSet)
+router.register("profile", UserModelViewSet)
+router.register("notice_borrow", NoticeBorrowModelViewSet)
 
 urlpatterns = [
     path('api/', include(router.urls)),
@@ -25,7 +30,5 @@ urlpatterns = [
     path('book/', include("books.book.urls")),
     path('borrow/', include("books.borrow.urls")),
     path('notice_borrow/', include("books.notice_borrow.urls")),
-
-
     path('api-token-auth/', views.obtain_auth_token),
 ]

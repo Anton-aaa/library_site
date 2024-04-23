@@ -4,14 +4,16 @@ from django.shortcuts import render
 from django.views.generic import TemplateView
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
-from django.utils.dateparse import parse_datetime
-import json
 from rest_framework import mixins
-from books.filters import IsOwnerBorrowFilterBackend
+from books.filters import IsOwnerBorrowFilterBackend, IsRecipientFilterBackend
 from books.forms import SearchForm
-from books.models import NoticeBorrow, Book, Genre, BorrowRequest
-from library.permissions import IsLibrarianOrAdmin, IsBorrowerOrAdminOrLibrarian
-from library.serializers import GenreSerializer, BookSerializer, BorrowRequestSerializer
+from books.models import NoticeBorrow, Book, Genre, BorrowRequest, User
+from library.permissions import IsLibrarianOrAdmin, IsBorrowerOrAdminOrLibrarian, IsRecipientOrAdminOrLibrarian
+from library.serializers import (GenreSerializer,
+                                 BookSerializer,
+                                 BorrowRequestSerializer,
+                                 UserSerializer,
+                                 NoticeBorrowSerializer)
 
 
 class MainView(TemplateView):
@@ -44,6 +46,19 @@ class GenreModelViewSet(ModelViewSet):
     def get_permissions(self):
         if self.action == "list":
             return [AllowAny()]
+
+        return super().get_permissions()
+
+
+
+class UserModelViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [AllowAny]
+
+    def get_permissions(self):
+        if self.action == "list" or self.action == "retrieve":
+            return [IsLibrarianOrAdmin()]
 
         return super().get_permissions()
 
@@ -109,8 +124,14 @@ class BorrowRequestModelViewSet(mixins.ListModelMixin,
 
 
 
-
-
+class NoticeBorrowModelViewSet(mixins.ListModelMixin,
+                           mixins.UpdateModelMixin,
+                           GenericViewSet
+                           ):
+    queryset = NoticeBorrow.objects.all()
+    serializer_class = NoticeBorrowSerializer
+    permission_classes = [IsRecipientOrAdminOrLibrarian]
+    filter_backends = [IsRecipientFilterBackend]
 
 
 
