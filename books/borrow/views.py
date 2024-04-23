@@ -176,7 +176,7 @@ class BorrowRequestDetailView(DetailView):
 
 class BorrowRequestDeadlineTrackingView(PermissionRequiredMixin, ListView):
     model = BorrowRequest
-    template_name = 'list_borrow.html'
+    template_name = 'list_overdue_borrow.html'
     context_object_name = "borrows"
     paginate_by = 5
     login_url = 'login'
